@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/irnafitriani/music/config"
 	"github.com/irnafitriani/music/entity"
 	"github.com/irnafitriani/music/handler"
 	"gorm.io/driver/mysql"
@@ -9,8 +12,13 @@ import (
 )
 
 func main() {
-
-	dsn := "root:@tcp(127.0.0.1:3306)/music_app?charset=utf8mb4&parseTime=True&loc=Local"
+	conf := config.LoadConfig()
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		conf.DB.User,
+		conf.DB.Password,
+		conf.DB.Host,
+		conf.DB.Port,
+		conf.DB.Database)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
