@@ -33,7 +33,7 @@ func main() {
 		},
 	)
 
-	songHandler := handler.NewSongHandler(db)
+	songHandler := handler.NewSongHandler(db, conf)
 
 	app.Get("/", handler.HelloHandler)
 
