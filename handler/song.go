@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -100,4 +101,27 @@ func (h SongHandler) Delete(c *fiber.Ctx) error {
 
 	h.db.Delete(&song)
 	return c.JSON(map[string]string{"message": "song deleted"})
+}
+
+func (h SongHandler) Play(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var song entity.Song
+	h.db.First(&song, id)
+	if song.ID == 0 {
+		return c.Status(404).JSON(map[string]string{"message": "song not found"})
+	}
+
+	filePath := fmt.Sprintf("%s/%s", h.conf.StoragePath, song.File)
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	c.Set("Content-Type", "audio/mpeg")
+	_, err = io.Copy(c, file)
+	if err != nil {
+		return err
+	}
+	return nil
 }
