@@ -26,6 +26,7 @@ func main() {
 	}
 
 	db.AutoMigrate(&entity.Song{})
+	db.AutoMigrate(&entity.User{})
 
 	app := fiber.New(
 		fiber.Config{
@@ -34,6 +35,7 @@ func main() {
 	)
 
 	songHandler := handler.NewSongHandler(db, conf)
+	userHadler := handler.NewUserHandler(db, conf)
 
 	app.Get("/", handler.HelloHandler)
 
@@ -44,5 +46,7 @@ func main() {
 
 	app.Post("song/upload", songHandler.Upload)
 	app.Get("/stream/:id", songHandler.Play)
+
+	app.Post("/register", userHadler.Register)
 	app.Listen(":4000")
 }
