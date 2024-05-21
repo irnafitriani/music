@@ -12,6 +12,7 @@ type Song struct {
 	Artist     string    `json:"artist"`
 	Cover      string    `json:"cover"`
 	File       string    `json:"file"`
+	StreamUrl  string    `json:"stream_url"`
 	PlayCounts int       `json:"play_counts"`
 	CreatedAt  time.Time `json:"created_at"`
 }

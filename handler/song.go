@@ -61,6 +61,10 @@ func (h SongHandler) Upload(c *fiber.Ctx) error {
 func (h SongHandler) List(c *fiber.Ctx) error {
 	var songs []entity.Song
 	h.db.Find(&songs)
+	for i, song := range songs {
+		song.StreamUrl = fmt.Sprintf("%s/stream/%d", h.conf.AppUrl, song.ID)
+		songs[i] = song
+	}
 	return c.JSON(songs)
 }
 
