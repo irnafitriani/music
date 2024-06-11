@@ -11,6 +11,7 @@ type Config struct {
 	AppUrl      string
 	StoragePath string
 	DB          DB
+	S3          S3
 }
 
 type DB struct {
@@ -19,6 +20,13 @@ type DB struct {
 	User     string
 	Password string
 	Database string
+}
+
+type S3 struct {
+	Key    string
+	Secret string
+	Region string
+	Bucket string
 }
 
 func LoadConfig() Config {
@@ -40,6 +48,12 @@ func LoadConfig() Config {
 			User:     viper.GetString("db.user"),
 			Password: viper.GetString("db.password"),
 			Database: viper.GetString("db.database"),
+		},
+		S3: S3{
+			Key:    viper.GetString("s3.key"),
+			Secret: viper.GetString("s3.secret"),
+			Region: viper.GetString("s3.region"),
+			Bucket: viper.GetString("s3.bucket"),
 		},
 	}
 }

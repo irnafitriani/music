@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gofiber/fiber/v2"
 	"github.com/irnafitriani/music/config"
 	"github.com/irnafitriani/music/entity"
@@ -13,14 +14,16 @@ import (
 )
 
 type SongHandler struct {
-	db   *gorm.DB
-	conf config.Config
+	db        *gorm.DB
+	conf      config.Config
+	s3Session *session.Session
 }
 
-func NewSongHandler(db *gorm.DB, conf config.Config) *SongHandler {
+func NewSongHandler(db *gorm.DB, conf config.Config, s3Session *session.Session) *SongHandler {
 	return &SongHandler{
-		db:   db.Debug(),
-		conf: conf,
+		db:        db.Debug(),
+		conf:      conf,
+		s3Session: s3Session,
 	}
 }
 
@@ -35,11 +38,19 @@ func (h SongHandler) Add(c *fiber.Ctx) error {
 		return c.Status(400).JSON(e)
 	}
 
-	if _, err := os.Stat(h.conf.StoragePath + "/" + song.File); err != nil {
-		return c.Status(400).JSON(map[string]string{"message": "file not found"})
+	filePath := h.conf.StoragePath + "/" + song.File
+
+	output, err := helper.UploadS3(filePath, h.s3Session, h.conf.S3.Bucket)
+	if err != nil {
+		return c.Status(400).JSON(e)
 	}
 
+	song.File = output.Location
+
 	h.db.Create(&song)
+
+	os.Remove(filePath)
+
 	return c.JSON(song)
 }
 

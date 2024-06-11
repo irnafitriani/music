@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gofiber/fiber/v2"
 	"github.com/irnafitriani/music/config"
 	"github.com/irnafitriani/music/entity"
@@ -13,6 +16,7 @@ import (
 
 func main() {
 	conf := config.LoadConfig()
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		conf.DB.User,
 		conf.DB.Password,
@@ -34,7 +38,8 @@ func main() {
 		},
 	)
 
-	songHandler := handler.NewSongHandler(db, conf)
+	s3session := Creates3Session(conf.S3)
+	songHandler := handler.NewSongHandler(db, conf, s3session)
 	userHadler := handler.NewUserHandler(db, conf)
 
 	app.Get("/", handler.HelloHandler)
@@ -49,4 +54,20 @@ func main() {
 
 	app.Post("/register", userHadler.Register)
 	app.Listen(":4000")
+}
+
+func Creates3Session(s3Conf config.S3) *session.Session {
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(s3Conf.Region),
+		Credentials: credentials.NewStaticCredentials(
+			s3Conf.Key,
+			s3Conf.Secret,
+			""),
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return sess
 }
